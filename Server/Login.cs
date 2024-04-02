@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
 using Server;
@@ -17,7 +17,7 @@ builder.Services.AddCors(options =>
 });
 var app = builder.Build();
 app.UseCors("AllowSpecificOrigin");
-string connectionString = "server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;port=3306";
+string connectionString = "server=localhost;uid=root;pwd=Rd0671rd..;database=exampleNet;port=3306";
 
 app.MapPost("/users", (User user) =>
 {
