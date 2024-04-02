@@ -2,206 +2,35 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
 using Server;
-
-var builder = WebApplication.CreateBuilder(args);
-var state = new Dictionary<string, string>();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigin",
-        builder =>
-        {
-            builder.WithOrigins("http://localhost:5173")
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
-});
-var app = builder.Build();
-app.UseCors("AllowSpecificOrigin");
 string connectionString = "server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;port=3306";
 
-app.MapPost("/users", (User user) =>
+var builder = WebApplication.CreateBuilder(args);
+State state = new(new(connectionString));
+state.DB.Open();
+builder.Services.AddSingleton(state);
+var app = builder.Build();
+
+app.MapPost("/users", Users.AddUser);
+app.MapGet("/users", Users.All);
+app.MapDelete("/users/{userID}",Users.DeleteUser);
+//app.MapPut("/users/{userID}", Users.UpdateUser);
+
+app.MapPut("/users/{userID}", (string userID, User updatedUser) =>
 {
     using var db = new MySqlConnection(connectionString);
     try
     {
         db.Open();
-        var addedUser = Users.AddUser(db, user);
-        return Results.Ok(addedUser);
+        updatedUser.UserID = userID;
+        Users.UpdateUser(db, updatedUser);
+        return Results.Ok(updatedUser);
     }
     catch (Exception ex)
     {
         Console.WriteLine(ex.Message);
-        return Results.Problem("Something went wrong!");
+        return Results.Problem("Something went wrong");
     }
 });
-app.MapGet("/users",()=> @"
-[
-    {
-      ""id"": ""1"",
-      ""username"": ""a1"",
-      ""password"": ""a1"",
-      ""type"": ""admin"",
-      ""email"": ""asd@gmail.com"",
-      ""phone"": ""123456789"",
-      ""personalNumber"": ""12354123"",
-      ""firstname"": ""Sven"",
-      ""lastname"": ""Svenson""
-    },
-    {
-      ""id"": ""3"",
-      ""username"": ""u3"",
-      ""password"": ""u3"",
-      ""type"": ""user"",
-      ""email"": ""asd@gmail.com"",
-      ""phone"": ""123456789"",
-      ""personalNumber"": ""12354123"",
-      ""firstname"": ""Sven"",
-      ""lastname"": ""Svenson""
-    },
-    {
-      ""id"": ""4"",
-      ""username"": ""u4"",
-      ""password"": ""u4"",
-      ""type"": ""user"",
-      ""email"": ""asd@gmail.com"",
-      ""phone"": ""123456789"",
-      ""personalNumber"": ""12354123"",
-      ""firstname"": ""Sven"",
-      ""lastname"": ""Svenson""
-    },
-    {
-      ""id"": ""5"",
-      ""username"": ""u5"",
-      ""password"": ""u5"",
-      ""type"": ""user"",
-      ""email"": ""asd@gmail.com"",
-      ""phone"": ""123456789"",
-      ""personalNumber"": ""12354123"",
-      ""firstname"": ""Sven"",
-      ""lastname"": ""Svenson""
-    },
-    {
-      ""id"": ""4311a58b-d3f8-44ca-8a1f-f83378f3e654"",
-      ""username"": ""a"",
-      ""password"": ""sd"",
-      ""type"": ""user"",
-      ""email"": ""asd1@asd.com"",
-      ""phone"": ""0764110990"",
-      ""personalNumber"": ""34123"",
-      ""firstname"": ""asdsadasd"",
-      ""lastname"": ""DOGAN""
-    },
-    {
-      ""username"": ""a"",
-      ""password"": ""12"",
-      ""type"": ""user"",
-      ""email"": ""asd2@gmail.com"",
-      ""phone"": ""0764110990"",
-      ""personalNumber"": ""123123"",
-      ""firstname"": ""RAHMAN"",
-      ""lastname"": ""DOGAN"",
-      ""id"": ""2a83ba0e-7d08-4da6-b0aa-76e87e8e2215""
-    },
-    {
-      ""id"": ""804ecb53-af3d-462e-982a-639b1c29f402"",
-      ""username"": ""Sofie"",
-      ""password"": ""ASDADSDASDA"",
-      ""type"": ""user"",
-      ""email"": ""7777777777777777@hotmail.com"",
-      ""phone"": ""4444444444444444444444"",
-      ""personalNumber"": ""777777777777777777"",
-      ""firstname"": ""Person"",
-      ""lastname"": ""KanelBulle""
-    },
-    {
-      ""id"": ""6544f876-8537-4d56-a558-eb0e1ec4f34a"",
-      ""username"": ""Sofies"",
-      ""password"": ""AsSDADSDASDA"",
-      ""type"": ""user"",
-      ""email"": ""7777777s777777777@hotmail.com"",
-      ""phone"": ""44444s44444444444444444"",
-      ""personalNumber"": ""3333323333333333333333"",
-      ""firstname"": ""Persons"",
-      ""lastname"": ""KanelBulles""
-    },
-    {
-      ""id"": ""957f73d8-3944-40f7-ab82-08cd4f03188d"",
-      ""username"": ""test"",
-      ""password"": ""ASDASDASD"",
-      ""type"": ""user"",
-      ""email"": ""kamel@hotmail.com"",
-      ""phone"": ""6666666666666666666"",
-      ""personalNumber"": ""222222222222222"",
-      ""firstname"": ""testing"",
-      ""lastname"": ""kanelnakel""
-    },
-    {
-      ""id"": ""f7fd5d34-400e-4c9d-bbc4-81e2fe404324"",
-      ""username"": ""Rahman"",
-      ""password"": ""ASDASDASDASDASD"",
-      ""type"": ""user"",
-      ""email"": ""5555555555555555@hotmail.com"",
-      ""phone"": ""4444444444444444444444"",
-      ""personalNumber"": ""555555555555555555"",
-      ""firstname"": ""Godzilla"",
-      ""lastname"": ""Trexasoriouse""
-    },
-    {
-      ""id"": ""fdda326a-2f11-4b5d-8675-f687bb683ee6"",
-      ""username"": ""KamelKamel"",
-      ""password"": ""ASDSADASDASD"",
-      ""type"": ""user"",
-      ""email"": ""sdasdasd@hotmail.com"",
-      ""phone"": ""999999999999999"",
-      ""personalNumber"": ""444444444444444"",
-      ""firstname"": ""asdadasdasd"",
-      ""lastname"": ""MASDASD""
-    },
-    {
-      ""id"": ""8d7cda9a-137e-4197-91b6-4e46fb65db7c"",
-      ""username"": ""JoeMasoud"",
-      ""password"": ""ASDASDASD"",
-      ""type"": ""user"",
-      ""email"": ""letsfindout@hotmail.com"",
-      ""phone"": ""1323232332323298"",
-      ""personalNumber"": ""231231231313"",
-      ""firstname"": ""okokokokok"",
-      ""lastname"": ""sssssssssslslss""
-    },
-    {
-      ""username"": ""u6"",
-      ""password"": ""u6"",
-      ""type"": ""user"",
-      ""email"": ""rdogan7106@gmail.com"",
-      ""phone"": ""0764410990"",
-      ""personalNumber"": ""1234565"",
-      ""firstname"": ""user6"",
-      ""lastname"": ""user6"",
-      ""id"": ""e8862655-a781-41ac-9a9b-2f595f5ffc1d""
-    },
-    {
-      ""username"": ""u10"",
-      ""password"": ""u10"",
-      ""type"": ""user"",
-      ""email"": ""asd@asd.com"",
-      ""phone"": ""0764110990"",
-      ""personalNumber"": ""123213"",
-      ""firstname"": ""u10"",
-      ""lastname"": ""DOGAN"",
-      ""id"": ""20b6cfad-451a-4cc6-b700-b54d284a7bcf""
-    },
-    {
-      ""username"": ""u11"",
-      ""password"": ""abc123"",
-      ""type"": ""user"",
-      ""email"": ""asdsa@gmail.com"",
-      ""phone"": ""0764410990"",
-      ""personalNumber"": ""23234"",
-      ""firstname"": ""u11"",
-      ""lastname"": ""u11"",
-      ""id"": ""25e3aac0-d144-4828-a9bc-fbd71a14b7d4""
-    }
-  ]");
 
 app.MapGet("/auctions", () => @"[
     {
@@ -387,58 +216,13 @@ app.MapGet("/auctions", () => @"[
   ]
 ");
 
-app.MapDelete("/users/{userID}", (string userID) => {
-    using var db = new MySqlConnection(connectionString);
-    try
-    {
-        db.Open();
-        Users.DeleteUser(db, userID);
-        return Results.Ok();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-        return Results.Problem("Something went wrong!");
-    }
-});
 
-app.MapPut("/users/{userID}", (string userID, User updatedUser) =>
-{
-    using var db = new MySqlConnection(connectionString);
-    try
-    {
-        db.Open();
-        updatedUser.UserID = userID;
-        Users.UpdateUser(db, updatedUser);
-        return Results.Ok(updatedUser);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-        return Results.Problem("Something went wrong");
-    }
-});
 
 
 app.MapGet("/", () =>
 {
     return "Hello World!";
 });
-app.MapGet("/userss/", () =>
-{
-    using var db = new MySqlConnection(connectionString);
-    try
-    {
-        db.Open();
-        var users = Users.GetAllUsers(db);
-        return Results.Ok(users);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-        return Results.Problem("An error occurred while processing your request.");
-    }
-});
-
 
 app.Run("http://localhost:3000");
+public record State(MySqlConnection DB);
