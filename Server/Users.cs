@@ -22,9 +22,6 @@ public static class Users
     public static List<User> All(State state)
     {
         var userList = new List<User>();
-
-        // MySqlCommand command = new("SELECT * FROM Users", state.DB);
-
         using (var connection = new MySqlConnection(state.DB.ConnectionString))
         {
             connection.Open();
@@ -49,8 +46,8 @@ public static class Users
                     userList.Add(user);
                 }
             }
-        }     
-        
+        }
+
         return userList;
     }
     public static User AddUser(User user, State state)
@@ -84,7 +81,7 @@ public static class Users
                 }
             }
         }
-            return user;
+        return user;
     }
 
     public static void DeleteUser(string userID, State state)

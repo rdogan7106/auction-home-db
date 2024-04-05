@@ -9,14 +9,16 @@ State state = new(new(connectionString));
 builder.Services.AddSingleton(state);
 var app = builder.Build();
 
+;
 app.MapPost("/users", Users.AddUser);
 app.MapGet("/users", Users.All);
-app.MapDelete("/users/{userID}",Users.DeleteUser);
+app.MapGet("/auctions", Auctions.All);
+app.MapDelete("/users/{userID}", Users.DeleteUser);
 app.MapPut("/users/{userID}", Users.UpdateUser);
 
 app.MapGet("/", () =>
 {
-    return "Hello World!";
+  return "Hello World!";
 });
 
 app.Run("http://localhost:3000");
