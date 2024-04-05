@@ -12,9 +12,11 @@ var app = builder.Build();
 ;
 app.MapPost("/users", Users.AddUser);
 app.MapGet("/users", Users.All);
-app.MapGet("/auctions", Auctions.All);
 app.MapDelete("/users/{userID}", Users.DeleteUser);
 app.MapPut("/users/{userID}", Users.UpdateUser);
+
+app.MapGet("/auctions", AuctionManager.GetAllItems);
+app.MapPost("/auctions", AuctionManager.AddItem);
 
 app.MapGet("/", () =>
 {

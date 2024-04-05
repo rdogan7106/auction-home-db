@@ -2,80 +2,104 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 
-namespace Server;
-
-public record Auction(string Id, int SellerId, int ItemId, string SellerName, string Title, string Description, string Image, float Price, string StartDate, string EndDate);
-
-public static class Auctions
+namespace Server
 {
-  public static List<Auction> All(State state)
-  {
-    var auctionList = new List<Auction>();
-
-    using var reader = MySqlHelper.ExecuteReader("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;", "SELECT * FROM Items");
-    while (reader.Read())
+    public class Item
     {
-      var auction = new Auction
-      (reader.GetString("id"),
-       reader.GetInt32("sellerId"),
-       reader.GetInt32("itemId"),
-       reader.GetString("sellerName"),
-       reader.GetString("title"),
-       reader.GetString("description"),
-       reader.GetString("image"),
-       reader.GetFloat("price"),
-       reader.GetString("startDate"),
-       reader.GetString("endDate")
-        );
-      auctionList.Add(auction);
-
+        public int Id { get; set; }
+        public string ItemID { get; set; }
+        public int SellerId { get; set; }
+        public string SellerName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Status { get; set; }
+        public ItemDetails? ItemDetails { get; set; }
+       
     }
 
-    return auctionList;
-  }
+    public class Bid
+    {
+        public int Id { get; set; }
+        public int BidderID { get; set; }
+        public int ItemID { get; set; }
+        public double BidPrice { get; set; }
+        public DateTime BidTime { get; set; }
+    }
 
-  public static int AddAuction(MySqlConnection conn, Auction auction)
-  {
-    var command = new MySqlCommand("INSERT INTO Items (sellerId, itemId, sellerName, Title, Description, Image, Price, StartDate, EndDate) " +
-                                           "VALUES (@sellerId, @itemId, @sellerName, @Title, @Description, @Image, @Price, @StartDate, @EndDate); " +
-                                           "SELECT LAST_INSERT_ID();", conn);
+    public class ItemDetails
+    {
+        public int Id { get; set; }
+        public string Description { get; set; }
+        public float Price { get; set; }
+        public string ItemID { get; set; }
+        public string Title { get; set; }
+    }
 
-    command.Parameters.AddWithValue("@sellerId", auction.SellerId);
-    command.Parameters.AddWithValue("@itemId", auction.ItemId);
-    command.Parameters.AddWithValue("@sellerName", auction.SellerName);
-    command.Parameters.AddWithValue("@Title", auction.Title);
-    command.Parameters.AddWithValue("@Description", auction.Description);
-    command.Parameters.AddWithValue("@Image", auction.Image);
-    command.Parameters.AddWithValue("@Price", auction.Price);
-    command.Parameters.AddWithValue("@StartDate", auction.StartDate);
-    command.Parameters.AddWithValue("@EndDate", auction.EndDate);
+    public static class AuctionManager
+    {
+        public static List<Item> GetAllItems()
+        {
+            var itemList = new List<Item>();
 
-    return Convert.ToInt32(command.ExecuteScalar());
+            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;");
+            conn.Open();
 
-  }
+            var query = "SELECT * FROM Items";
+            using var cmd = new MySqlCommand(query, conn);
+            using var reader = cmd.ExecuteReader();
 
-  public static void DeleteAuction(MySqlConnection conn, string auctionId)
-  {
-    var command = new MySqlCommand("DELETE FROM Items WHERE Id = @Id", conn);
-    command.Parameters.AddWithValue("@Id", auctionId);
-    command.ExecuteNonQuery();
-  }
+            while (reader.Read())
+            {
+                var item = new Item
+                {
+                    Id = reader.GetInt32("id"),
+                    ItemID = reader.GetString("itemID"),
+                    SellerId = reader.GetInt32("sellerId"),
+                    SellerName = reader.GetString("sellerName"),
+                    StartDate = DateTime.Parse(reader.GetString("startDate")),
+                    EndDate = DateTime.Parse(reader.GetString("endDate")),
+                    Status = reader.GetString("status"),
+                    ItemDetails = new ItemDetails
+                    {
+                        Id = reader.GetInt32("itemDetails_id"),
+                        Description = reader.GetString("description"),
+                        Price = reader.GetFloat("price"),
+                        ItemID = reader.GetString("itemID"),
+                        Title = reader.GetString("title")
+                    }
+                };
+                itemList.Add(item);
+            }
 
-  public static void UpdateAuction(MySqlConnection conn, Auction auction)
-  {
-    var command = new MySqlCommand("UPDATE Items SET sellerId = @sellerId, itemId = @itemId, sellerName = @sellerName, " +
-                                        "Title = @Title, Description = @Description, Image = @Image, " +
-                                        "Price = @Price, StartDate = @StartDate, EndDate = @EndDate WHERE Id = @Id", conn);
-    command.Parameters.AddWithValue("@sellerId", auction.SellerId);
-    command.Parameters.AddWithValue("@itemId", auction.ItemId);
-    command.Parameters.AddWithValue("@sellerName", auction.SellerName);
-    command.Parameters.AddWithValue("@Title", auction.Title);
-    command.Parameters.AddWithValue("@Description", auction.Description);
-    command.Parameters.AddWithValue("@Image", auction.Image);
-    command.Parameters.AddWithValue("@Price", auction.Price);
-    command.Parameters.AddWithValue("@StartDate", auction.StartDate);
-    command.Parameters.AddWithValue("@EndDate", auction.EndDate);
-    command.Parameters.AddWithValue("@Id", auction.Id);
-    command.ExecuteNonQuery();
-  }
+            return itemList;
+        }
+
+        public static void AddItem(Item item)
+        {
+            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;");
+            conn.Open();
+            var ItemUuid = Guid.NewGuid().ToString();
+            using var cmd = new MySqlCommand("INSERT INTO Items (itemID, sellerId, sellerName, startDate, endDate, status) VALUES (@ItemID, @SellerId, @SellerName, @StartDate, @EndDate, @Status)", conn);
+            cmd.Parameters.AddWithValue("@ItemID", ItemUuid);
+            cmd.Parameters.AddWithValue("@SellerId", item.SellerId);
+            cmd.Parameters.AddWithValue("@SellerName", item.SellerName);
+            cmd.Parameters.AddWithValue("@StartDate", item.StartDate.ToString("yyyy-MM-dd HH:mm:ss"));
+            cmd.Parameters.AddWithValue("@EndDate", item.EndDate.ToString("yyyy-MM-dd HH:mm:ss"));
+            cmd.Parameters.AddWithValue("@Status", item.Status);
+
+
+            using var cmd2 = new MySqlCommand("INSERT INTO ItemDetails (itemID, description, price, title) VALUES (@ItemID, @Description, @Price, @Title)", conn);
+            cmd2.Parameters.AddWithValue("@ItemID", ItemUuid);
+            cmd2.Parameters.AddWithValue("@Description", item.ItemDetails.Description);
+            cmd2.Parameters.AddWithValue("@Price", item.ItemDetails.Price);
+            cmd2.Parameters.AddWithValue("@Title", item.ItemDetails.Title);
+
+
+            cmd.ExecuteNonQuery();
+            cmd2.ExecuteNonQuery();
+
+        }
+
+        
+    }
 }
