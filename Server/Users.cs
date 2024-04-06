@@ -89,10 +89,26 @@ public static class Users
         using (var connection = new MySqlConnection(state.DB.ConnectionString))
         {
             connection.Open();
-            using (var command = new MySqlCommand("delete from Users where userID = @userID", connection))
+
+            // İlgili öğelerin detaylarını sil
+            using (var command2 = new MySqlCommand("DELETE FROM ItemDetails WHERE itemID IN (SELECT itemID FROM Items WHERE sellerID = @userID)", connection))
             {
-                command.Parameters.AddWithValue("@userID", userID);
-                command.ExecuteNonQuery();
+                command2.Parameters.AddWithValue("@userID", userID);
+                command2.ExecuteNonQuery();
+            }
+
+            // İlgili öğeleri sil
+            using (var command1 = new MySqlCommand("DELETE FROM Items WHERE sellerID = @userID", connection))
+            {
+                command1.Parameters.AddWithValue("@userID", userID);
+                command1.ExecuteNonQuery();
+            }
+
+            // Kullanıcıyı sil
+            using (var command3 = new MySqlCommand("DELETE FROM Users WHERE userID = @userID", connection))
+            {
+                command3.Parameters.AddWithValue("@userID", userID);
+                command3.ExecuteNonQuery();
             }
         }
     }

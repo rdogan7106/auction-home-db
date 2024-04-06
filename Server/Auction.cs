@@ -8,13 +8,14 @@ namespace Server
     {
         public int Id { get; set; }
         public string ItemID { get; set; }
-        public int SellerId { get; set; }
+        public string SellerId { get; set; }
         public string SellerName { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
         public ItemDetails? ItemDetails { get; set; }
-       
+        public List<Bid>? Bids { get; set; }
+
     }
 
     public class Bid
@@ -24,6 +25,7 @@ namespace Server
         public int ItemID { get; set; }
         public double BidPrice { get; set; }
         public DateTime BidTime { get; set; }
+
     }
 
     public class ItemDetails
@@ -40,11 +42,14 @@ namespace Server
         public static List<Item> GetAllItems()
         {
             var itemList = new List<Item>();
+            var Bids = new List<Bid>();
 
-            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;");
+            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
             conn.Open();
 
-            var query = "SELECT * FROM Items";
+            var query = "SELECT i.id, i.itemID, i.sellerId, i.sellerName, i.startDate, i.endDate, i.status," +
+                                     " id.description, id.price, id.title FROM Items i " +
+                                     "JOIN ItemDetails id ON i.itemID = id.itemID";
             using var cmd = new MySqlCommand(query, conn);
             using var reader = cmd.ExecuteReader();
 
@@ -54,19 +59,18 @@ namespace Server
                 {
                     Id = reader.GetInt32("id"),
                     ItemID = reader.GetString("itemID"),
-                    SellerId = reader.GetInt32("sellerId"),
+                    SellerId = reader.GetString("sellerId"),
                     SellerName = reader.GetString("sellerName"),
                     StartDate = DateTime.Parse(reader.GetString("startDate")),
                     EndDate = DateTime.Parse(reader.GetString("endDate")),
                     Status = reader.GetString("status"),
                     ItemDetails = new ItemDetails
                     {
-                        Id = reader.GetInt32("itemDetails_id"),
                         Description = reader.GetString("description"),
                         Price = reader.GetFloat("price"),
-                        ItemID = reader.GetString("itemID"),
                         Title = reader.GetString("title")
-                    }
+                    },
+                    Bids = Bids = new List<Bid>()
                 };
                 itemList.Add(item);
             }
@@ -76,7 +80,7 @@ namespace Server
 
         public static void AddItem(Item item)
         {
-            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase;");
+            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
             conn.Open();
             var ItemUuid = Guid.NewGuid().ToString();
             using var cmd = new MySqlCommand("INSERT INTO Items (itemID, sellerId, sellerName, startDate, endDate, status) VALUES (@ItemID, @SellerId, @SellerName, @StartDate, @EndDate, @Status)", conn);
@@ -100,6 +104,24 @@ namespace Server
 
         }
 
-        
+        public static void DeleteItem(string ItemID)
+        {
+            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
+            conn.Open();
+
+            using (var cmdDeleteDetails = new MySqlCommand("DELETE FROM ItemDetails WHERE itemID = @itemID", conn))
+            {
+                cmdDeleteDetails.Parameters.AddWithValue("@itemID", ItemID);
+                cmdDeleteDetails.ExecuteNonQuery();
+            }
+
+            using (var cmdDeleteItem = new MySqlCommand("DELETE FROM Items WHERE itemID = @itemID", conn))
+            {
+                cmdDeleteItem.Parameters.AddWithValue("@itemID", ItemID);
+                cmdDeleteItem.ExecuteNonQuery();
+            }
+        }
+
+
     }
 }
