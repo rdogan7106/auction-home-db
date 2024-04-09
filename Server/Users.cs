@@ -10,7 +10,7 @@ public static class Users
     public static List<User> All(State state)
     {
         var userList = new List<User>();
-        using var reader = MySqlHelper.ExecuteReader("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;", "SELECT * FROM Users");
+        using var reader = MySqlHelper.ExecuteReader(state.DB.ConnectionString, "SELECT * FROM Users");
         while (reader.Read())
         {
             var user = new User(

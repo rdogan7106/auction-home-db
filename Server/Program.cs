@@ -17,8 +17,8 @@ app.MapPut("/users/{userID}", Users.UpdateUser);
 
 app.MapGet("/auctions", AuctionManager.GetAllItems);
 app.MapPost("/auctions", AuctionManager.AddItem);
-app.MapDelete("/auctions/{ItemID}",AuctionManager.DeleteItem);
-app.MapPut("/auctions/{ItemID}", AuctionManager.UpdateAuction);
+//app.MapDelete("/auctions/{ItemID}",AuctionManager.DeleteItem);
+//app.MapPut("/auctions/{ItemID}", AuctionManager.UpdateAuction);
 
 
 
