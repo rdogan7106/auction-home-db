@@ -83,30 +83,19 @@ namespace Server
             MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd2, new MySqlParameter("@ItemID", ItemID));
 
         }
-        //public static void UpdateAuction(string itemID, Item item)
-        //{
-        //    using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
-        //    conn.Open();
-
-        //    using (var cmd1 = new MySqlCommand("UPDATE Items SET startDate = @startDate, endDate = @endDate WHERE itemID = @itemID", conn))
-        //    {
-        //        cmd1.Parameters.AddWithValue("@startDate", item.StartDate.ToString("yyyy-MM-dd HH:mm:ss"));
-        //        cmd1.Parameters.AddWithValue("@endDate", item.EndDate.ToString("yyyy-MM-dd HH:mm:ss"));
-        //        cmd1.Parameters.AddWithValue("@itemID", itemID);
-        //        cmd1.ExecuteNonQuery();
-        //    }
-
-        //    using (var cmd2 = new MySqlCommand("UPDATE ItemDetails SET title = @title, description = @description, price = @price WHERE itemID = @itemID", conn))
-        //    {
-        //        cmd2.Parameters.AddWithValue("@title", item.ItemDetails.Title);
-        //        cmd2.Parameters.AddWithValue("@description", item.ItemDetails.Description);
-        //        cmd2.Parameters.AddWithValue("@price", item.ItemDetails.Price);
-        //        cmd2.Parameters.AddWithValue("@itemID", itemID);
-        //        cmd2.ExecuteNonQuery();
-        //    }
-        //}
-
-
+        public static void UpdateAuction(string itemID, Item item,State state)
+        {
+            var conn = state.DB.ConnectionString;
+            var cmd1 = "UPDATE Items SET startDate = @startDate, endDate = @endDate WHERE itemID = @itemID";
+            var cmd2 = "UPDATE ItemDetails SET title = @title, description = @description, price = @price WHERE itemID = @itemID";
+            MySqlHelper.ExecuteNonQuery(conn, cmd1, [new MySqlParameter("@startDate", item.StartDate),
+                                                    new MySqlParameter( "@endDate",item.EndDate),
+                                                    new MySqlParameter("@itemID", itemID)]);
+            MySqlHelper.ExecuteNonQuery(conn, cmd2, [new MySqlParameter("@title", item.ItemDetails.Title),
+                                                    new MySqlParameter( "@description",item.ItemDetails.Description),
+                                                     new MySqlParameter( "@price",item.ItemDetails.Price),
+                                                    new MySqlParameter("@itemID", itemID)]);
+        }
 
     }
 }
