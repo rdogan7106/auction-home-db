@@ -2,115 +2,71 @@
 
 namespace Server;
 
-public class User
-{
-    public int? Id { get; set; }
-    public string? UserID { get; set; }
-    public string? Username { get; set; }
-    public string? Password { get; set; }
-    public string? Type { get; set; }
-    public string? Email { get; set; }
-    public string? Phone { get; set; }
-    public int? PersonalNumber { get; set; }
-    public string? Firstname { get; set; }
-    public string? Lastname { get; set; }
-
-}
+public record User(int Id, string UserID, string Username, string Password, string Type,
+                    string Email, string Phone, int PersonalNumber, string Firstname, string Lastname);
 
 public static class Users
 {
     public static List<User> All(State state)
     {
         var userList = new List<User>();
-        using (var connection = new MySqlConnection(state.DB.ConnectionString))
+        using var reader = MySqlHelper.ExecuteReader("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;", "SELECT * FROM Users");
+        while (reader.Read())
         {
-            connection.Open();
-            using (var command = new MySqlCommand("SELECT * FROM Users", connection))
-            {
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    var user = new User
-                    {
-                        Id = reader.GetInt32("id"),
-                        UserID = reader.GetString("userID"),
-                        Username = reader.GetString("username"),
-                        Password = reader.GetString("password"),
-                        Type = reader.GetString("type"),
-                        Email = reader.GetString("email"),
-                        Phone = reader.GetString("phone"),
-                        PersonalNumber = reader.GetInt32("personalNumber"),
-                        Firstname = reader.GetString("firstname"),
-                        Lastname = reader.GetString("lastname")
-                    };
-                    userList.Add(user);
-                }
-            }
-        }
+            var user = new User(
+            reader.GetInt32("id"),
+            reader.GetString("userID"),
+            reader.GetString("username"),
+            reader.GetString("password"),
+            reader.GetString("Type"),
+            reader.GetString("email"),
+            reader.GetString("phone"),
+            reader.GetInt32("personalNumber"),
+            reader.GetString("firstname"),
+            reader.GetString("lastname")
+        );
+            userList.Add(user);
+        };
 
         return userList;
     }
-    public static User AddUser(User user, State state)
+
+   
+    public static IResult AddUser(User user, State state)
     {
-        using (var connection = new MySqlConnection(state.DB.ConnectionString))
+        var conn = state.DB.ConnectionString;
+        var cmd = "INSERT INTO Users (userID, username, password, type, email, phone, personalNumber, firstname, lastname)" +
+            "VALUES (@userID, @username, @password, @type, @email, @phone, @personalNumber, @firstname, @lastname);  select LAST_INSERT_ID();";
+
+        var result = MySqlHelper.ExecuteScalar(conn, cmd,
+            [new MySqlParameter("@userID", Guid.NewGuid().ToString()), new MySqlParameter("@username",user.Username),
+             new MySqlParameter("@password",user.Password),new MySqlParameter("@type",user.Type), new MySqlParameter("@email",user.Email),
+             new MySqlParameter("@phone",user.Phone), new MySqlParameter("@personalNumber",user.PersonalNumber), new MySqlParameter("@firstname",user.Firstname),
+             new MySqlParameter("@lastname",user.Lastname)
+            ]
+
+            );
+        if (result is int id)
         {
-            connection.Open();
-            var userUuid = Guid.NewGuid().ToString();
-            using (var command = new MySqlCommand("INSERT INTO Users (userID, username, password, type, email, phone, personalNumber, firstname, lastname) " +
-                                                  "VALUES (@userID, @username, @password, @type, @email, @phone, @personalNumber, @firstname, @lastname);", connection))
-            {
-                command.Parameters.AddWithValue("@userID", userUuid);
-                command.Parameters.AddWithValue("@username", user.Username);
-                command.Parameters.AddWithValue("@password", user.Password);
-                command.Parameters.AddWithValue("@type", user.Type);
-                command.Parameters.AddWithValue("@email", user.Email);
-                command.Parameters.AddWithValue("@phone", user.Phone);
-                command.Parameters.AddWithValue("@personalNumber", user.PersonalNumber);
-                command.Parameters.AddWithValue("@firstname", user.Firstname);
-                command.Parameters.AddWithValue("@lastname", user.Lastname);
-
-                command.ExecuteNonQuery();
-            }
-
-            using (var idCommand = new MySqlCommand("SELECT LAST_INSERT_ID();", connection))
-            {
-                var result = idCommand.ExecuteScalar();
-                if (result != null)
-                {
-                    user.Id = Convert.ToInt32(result);
-                }
-            }
+            return TypedResults.Created(id.ToString());
         }
-        return user;
+        else
+        {
+            return TypedResults.Problem("Some Thing Went wrong");
+        }
+
+
     }
 
+    
     public static void DeleteUser(string userID, State state)
-    {
-        using (var connection = new MySqlConnection(state.DB.ConnectionString))
-        {
-            connection.Open();
+  {
+        var cmd1 = "DELETE FROM ItemDetails WHERE itemID IN (SELECT itemID FROM Items WHERE sellerID = @userID)";
+        var cmd2 = "DELETE FROM Items WHERE sellerID = @userID";
+        var cmd3 = "\"DELETE FROM Users WHERE userID = @userID";
 
-            // İlgili öğelerin detaylarını sil
-            using (var command2 = new MySqlCommand("DELETE FROM ItemDetails WHERE itemID IN (SELECT itemID FROM Items WHERE sellerID = @userID)", connection))
-            {
-                command2.Parameters.AddWithValue("@userID", userID);
-                command2.ExecuteNonQuery();
-            }
 
-            // İlgili öğeleri sil
-            using (var command1 = new MySqlCommand("DELETE FROM Items WHERE sellerID = @userID", connection))
-            {
-                command1.Parameters.AddWithValue("@userID", userID);
-                command1.ExecuteNonQuery();
-            }
-
-            // Kullanıcıyı sil
-            using (var command3 = new MySqlCommand("DELETE FROM Users WHERE userID = @userID", connection))
-            {
-                command3.Parameters.AddWithValue("@userID", userID);
-                command3.ExecuteNonQuery();
-            }
-        }
+        
     }
 
     public static void UpdateUser(User user, State state)

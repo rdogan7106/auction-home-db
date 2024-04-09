@@ -121,6 +121,29 @@ namespace Server
                 cmdDeleteItem.ExecuteNonQuery();
             }
         }
+        public static void UpdateAuction(string itemID, Item item)
+        {
+            using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
+            conn.Open();
+
+            using (var cmd1 = new MySqlCommand("UPDATE Items SET startDate = @startDate, endDate = @endDate WHERE itemID = @itemID", conn))
+            {
+                cmd1.Parameters.AddWithValue("@startDate", item.StartDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                cmd1.Parameters.AddWithValue("@endDate", item.EndDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                cmd1.Parameters.AddWithValue("@itemID", itemID);
+                cmd1.ExecuteNonQuery();
+            }
+
+            using (var cmd2 = new MySqlCommand("UPDATE ItemDetails SET title = @title, description = @description, price = @price WHERE itemID = @itemID", conn))
+            {
+                cmd2.Parameters.AddWithValue("@title", item.ItemDetails.Title);
+                cmd2.Parameters.AddWithValue("@description", item.ItemDetails.Description);
+                cmd2.Parameters.AddWithValue("@price", item.ItemDetails.Price);
+                cmd2.Parameters.AddWithValue("@itemID", itemID);
+                cmd2.ExecuteNonQuery();
+            }
+        }
+
 
 
     }
