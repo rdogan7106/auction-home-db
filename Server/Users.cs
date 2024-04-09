@@ -63,10 +63,12 @@ public static class Users
   {
         var cmd1 = "DELETE FROM ItemDetails WHERE itemID IN (SELECT itemID FROM Items WHERE sellerID = @userID)";
         var cmd2 = "DELETE FROM Items WHERE sellerID = @userID";
-        var cmd3 = "\"DELETE FROM Users WHERE userID = @userID";
+        var cmd3 = "DELETE FROM Users WHERE userID = @userID";
+        MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd1, new MySqlParameter("@userID", userID));
+        MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd2, new MySqlParameter("@userID", userID));
+        MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd3, new MySqlParameter("@userID", userID));
 
 
-        
     }
 
     public static void UpdateUser(User user, State state)
