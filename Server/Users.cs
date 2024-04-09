@@ -71,24 +71,21 @@ public static class Users
 
     }
 
-    public static void UpdateUser(User user, State state)
+    public static void UpdateUser(string userID, User user, State state)
     {
-        using (var connection = new MySqlConnection(state.DB.ConnectionString))
-        {
-            connection.Open();
-            using var command = new MySqlCommand("UPDATE Users SET username = @username, password = @password, type = @type, " +
-                                             "email = @email, phone = @phone, personalNumber = @personalNumber, " +
-                                             "firstname = @firstname, lastname = @lastname WHERE userID = @userID", connection);
-            command.Parameters.AddWithValue("@username", user.Username);
-            command.Parameters.AddWithValue("@password", user.Password);
-            command.Parameters.AddWithValue("@type", user.Type);
-            command.Parameters.AddWithValue("@email", user.Email);
-            command.Parameters.AddWithValue("@phone", user.Phone);
-            command.Parameters.AddWithValue("@personalNumber", user.PersonalNumber);
-            command.Parameters.AddWithValue("@firstname", user.Firstname);
-            command.Parameters.AddWithValue("@lastname", user.Lastname);
-            command.Parameters.AddWithValue("@userID", user.UserID);
-            command.ExecuteNonQuery();
-        }
+        var conn = state.DB.ConnectionString;
+        var cmd = "UPDATE Users SET username = @username, password = @password, type = @type, email = @email, " +
+                                       "phone = @phone, personalNumber = @personalNumber," +
+                                        "firstname = @firstname, lastname = @lastname WHERE userID = @userID";
+       
+        MySqlHelper.ExecuteNonQuery(conn, cmd, [new MySqlParameter("@username", user.Username),
+                                                    new MySqlParameter( "@password",user.Password),
+                                                    new MySqlParameter( "@type",user.Type),
+                                                    new MySqlParameter( "@email",user.Email),
+                                                     new MySqlParameter( "@phone",user.Phone),
+                                                    new MySqlParameter( "@personalNumber",user.PersonalNumber),
+                                                    new MySqlParameter( "@firstName",user.Firstname),
+                                                    new MySqlParameter( "@lastName",user.Lastname),
+                                                    new MySqlParameter( "@userID",userID),]);    
     }
 }
