@@ -1,4 +1,5 @@
 using MySql.Data.MySqlClient;
+using MySqlX.XDevAPI.Common;
 using System;
 using System.Collections.Generic;
 
@@ -70,30 +71,18 @@ namespace Server
              new MySqlParameter("@price",item.ItemDetails.Price),
                 new MySqlParameter("@title",item.ItemDetails.Title)
              
-            ]);
-
-
-
-            
+            ]);      
         }
 
-        //public static void DeleteItem(string ItemID)
-        //{
-        //    using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
-        //    conn.Open();
 
-        //    using (var cmdDeleteDetails = new MySqlCommand("DELETE FROM ItemDetails WHERE itemID = @itemID", conn))
-        //    {
-        //        cmdDeleteDetails.Parameters.AddWithValue("@itemID", ItemID);
-        //        cmdDeleteDetails.ExecuteNonQuery();
-        //    }
+        public static void DeleteItem(string ItemID,State state)
+        {
+            var cmd1 = "DELETE FROM ItemDetails WHERE itemID = @ItemID";
+            var cmd2 = "DELETE FROM Items WHERE itemID = @ItemID";
+            MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd1, new MySqlParameter("@ItemID", ItemID));
+            MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd2, new MySqlParameter("@ItemID", ItemID));
 
-        //    using (var cmdDeleteItem = new MySqlCommand("DELETE FROM Items WHERE itemID = @itemID", conn))
-        //    {
-        //        cmdDeleteItem.Parameters.AddWithValue("@itemID", ItemID);
-        //        cmdDeleteItem.ExecuteNonQuery();
-        //    }
-        //}
+        }
         //public static void UpdateAuction(string itemID, Item item)
         //{
         //    using var conn = new MySqlConnection("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;");
