@@ -3,14 +3,14 @@
 namespace Server;
 
 public record User(int Id, string UserID, string Username, string Password, string Type,
-                    string Email, string Phone, int PersonalNumber, string Firstname, string Lastname);
+                   string Email, string Phone, int PersonalNumber, string Firstname, string Lastname);
 
 public static class Users
 {
     public static List<User> All(State state)
     {
         var userList = new List<User>();
-        using var reader = MySqlHelper.ExecuteReader("server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;", "SELECT * FROM Users");
+        using var reader = MySqlHelper.ExecuteReader("server=localhost;uid=root;pwd=mypassword;database=AuctionDatabase;", "SELECT * FROM Users");
         while (reader.Read())
         {
             var user = new User(
@@ -31,7 +31,7 @@ public static class Users
         return userList;
     }
 
-   
+
     public static IResult AddUser(User user, State state)
     {
         var conn = state.DB.ConnectionString;
@@ -58,15 +58,15 @@ public static class Users
 
     }
 
-    
+
     public static void DeleteUser(string userID, State state)
-  {
+    {
         var cmd1 = "DELETE FROM ItemDetails WHERE itemID IN (SELECT itemID FROM Items WHERE sellerID = @userID)";
         var cmd2 = "DELETE FROM Items WHERE sellerID = @userID";
         var cmd3 = "\"DELETE FROM Users WHERE userID = @userID";
 
 
-        
+
     }
 
     public static void UpdateUser(User user, State state)
