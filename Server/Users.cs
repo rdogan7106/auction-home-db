@@ -2,34 +2,8 @@
 
 namespace Server;
 
-public record User
-{
-    public int Id { get; set; }
-    public string UserID { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
-    public string Type { get; set; }
-    public string Email { get; set; }
-    public string Phone { get; set; }
-    public int PersonalNumber { get; set; }
-    public string Firstname { get; set; }
-    public string Lastname { get; set; }
-
-    public User(int id, string userID, string username, string password, string type,
-                string email, string phone, int personalNumber, string firstname, string lastname)
-    {
-        this.Id = id;
-        this.UserID = userID;
-        this.Username = username;
-        this.Password = password;
-        this.Type = type;
-        this.Email = email;
-        this.Phone = phone;
-        this.PersonalNumber = personalNumber;
-        this.Firstname = firstname;
-        this.Lastname = lastname;
-    }
-};
+public record User(int Id, string UserID, string Username, string Password, string Type,
+                    string Email, string Phone, int PersonalNumber, string Firstname, string Lastname);
 
 public static class Users
 {
