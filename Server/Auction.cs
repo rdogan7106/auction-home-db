@@ -5,14 +5,69 @@ using System.Collections.Generic;
 
 namespace Server
 {
-    public record Item(int Id, String ItemID, string SellerId, string SellerName, 
-        DateTime StartDate, DateTime EndDate, string Status, ItemDetails ItemDetails,List<Bid> Bids);
+    public record Item
+    {
+       public int Id { get; set; }
+       public string ItemID { get; set; }
+       public string SellerId { get; set; }
+       public string SellerName { get; set; }
+       public DateTime StartDate { get; set; }
+       public DateTime EndDate { get; set; }
+       public string Status { get; set; }
+       public ItemDetails ItemDetails { get; set; }
+       public List<Bid> Bids { get; set; } = new List<Bid>();
+        public Item(int Id, string ItemID, string SellerID, string SellerName, DateTime StartDate, DateTime EndDate, string Status, ItemDetails itemDetails, List<Bid> bids)
+        {
+            this.Id = Id;
+            this.ItemID = ItemID;
+            this.SellerId = SellerID;
+            this.SellerName = SellerName;
+            this.StartDate = StartDate;
+            this.EndDate = EndDate;
+            this.Status = Status;
+            this.ItemDetails = itemDetails;
+            this.Bids = bids;
+        }
+                 
+    };
 
-    public record Bid(int Id, string BidderID, string ItemID, double BidPrice, DateTime BidTime);
+    public record Bid
+    {
+        public int Id { get; init; }
+        public string BidderID { get; init; }
+        public string ItemID { get; init; }
+        public double BidPrice { get; init; }
+        public DateTime BidTime { get; init; }
 
-    public record ItemDetails(int Id, string Description, float Price, string ItemID, string Title);
-  
-       public static class AuctionManager
+        public Bid(int id, string bidderID, string itemID, double bidPrice, DateTime bidTime)
+        {
+            this.Id = id;
+            this.BidderID = bidderID;
+            this.ItemID = itemID;
+            this.BidPrice = bidPrice;
+            this.BidTime = bidTime;
+        }
+    };
+
+    public record ItemDetails
+    {
+        public int Id { get; init; }
+        public string Description { get; init; }
+        public float Price { get; init; }
+        public string ItemID { get; init; }
+        public string Title { get; init; }
+
+        public ItemDetails(int id, string description, float price, string itemID, string title)
+        {
+            this.Id = id;
+            this.Description = description;
+            this.Price = price;
+            this.ItemID = itemID;
+            this.Title = title;
+        }
+    };
+
+    public static class AuctionManager
     {
         public static List<Item> GetAllItems(State state)
         {
