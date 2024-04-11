@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace Server
 {
-  public class Item
+  public record Item
   {
     public int Id { get; set; }
     public string ItemID { get; set; }
-    public string SellerId { get; set; }
+    public string sellerId { get; set; }
     public string SellerName { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
@@ -18,15 +18,14 @@ namespace Server
 
   }
 
-  public class Bid
-  {
-    public int Id { get; set; }
-    public int BidderID { get; set; }
-    public int ItemID { get; set; }
-    public double BidPrice { get; set; }
-    public DateTime BidTime { get; set; }
-
-  }
+  public record Bid
+  (
+     int Id,
+     int BidderID,
+    int ItemID,
+     double BidPrice,
+     DateTime BidTime
+  );
 
   public class ItemDetails
   {
@@ -59,7 +58,7 @@ namespace Server
         {
           Id = reader.GetInt32("id"),
           ItemID = reader.GetString("itemID"),
-          SellerId = reader.GetString("sellerId"),
+          sellerId = reader.GetString("sellerId"),
           SellerName = reader.GetString("sellerName"),
           StartDate = DateTime.Parse(reader.GetString("startDate")),
           EndDate = DateTime.Parse(reader.GetString("endDate")),
@@ -85,7 +84,7 @@ namespace Server
       var ItemUuid = Guid.NewGuid().ToString();
       using var cmd = new MySqlCommand("INSERT INTO Items (itemID, sellerId, sellerName, startDate, endDate, status) VALUES (@ItemID, @SellerId, @SellerName, @StartDate, @EndDate, @Status)", conn);
       cmd.Parameters.AddWithValue("@ItemID", ItemUuid);
-      cmd.Parameters.AddWithValue("@SellerId", item.SellerId);
+      cmd.Parameters.AddWithValue("@SellerId", item.sellerId);
       cmd.Parameters.AddWithValue("@SellerName", item.SellerName);
       cmd.Parameters.AddWithValue("@StartDate", item.StartDate.ToString("yyyy-MM-dd HH:mm:ss"));
       cmd.Parameters.AddWithValue("@EndDate", item.EndDate.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -144,6 +143,24 @@ namespace Server
       }
     }
 
+
+
+  }
+  public class BidManager
+  {
+    public static void AddBid(int itemId, int bidderId, double bidPrice)
+    {
+      using var conn = new MySqlConnection("server=localhost;uid=root;pwd=mypassword;database=AuctionDatabase;");
+      conn.Open();
+
+      using var cmd = new MySqlCommand("INSERT INTO Bids (ItemId, BidderId, BidPrice, BidTime) VALUES (@ItemId, @BidderId, @BidPrice, @BidTime)", conn);
+      cmd.Parameters.AddWithValue("@ItemId", itemId);
+      cmd.Parameters.AddWithValue("@BidderId", bidderId);
+      cmd.Parameters.AddWithValue("@BidPrice", bidPrice);
+      cmd.Parameters.AddWithValue("@BidTime", DateTime.Now);
+
+      cmd.ExecuteNonQuery();
+    }
 
 
   }
