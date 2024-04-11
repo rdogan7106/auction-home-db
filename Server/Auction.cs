@@ -18,10 +18,10 @@ namespace Server
     {
       var itemList = new List<Item>();
       var Bids = new List<Bid>();
-      var query = "SELECT i.id, i.itemID, i.sellerId, i.sellerName, i.startDate, i.endDate, i.status," +
-                               " id.description, id.price, id.title FROM Items i " +
-                               "JOIN ItemDetails id ON i.itemID = id.itemID";
-      using var reader = MySqlHelper.ExecuteReader(state.DB.ConnectionString, query);
+      var query = @"SELECT i.id, i.itemID, i.sellerId, i.sellerName, i.startDate, i.endDate, i.status,
+                                id.description, id.price, id.title FROM Items i 
+                                JOIN ItemDetails id ON i.itemID = id.itemID";
+      using var reader = MySqlHelper.ExecuteReader(state.DB, query);
 
 
       while (reader.Read())
@@ -56,17 +56,17 @@ namespace Server
     public static void AddItem(Item item, State state)
     {
 
-      var conn = state.DB.ConnectionString;
+
       var cmd1 = "INSERT INTO Items (itemID, sellerId, sellerName, startDate, endDate, status) VALUES (@ItemID, @SellerId, @SellerName, @StartDate, @EndDate, @Status); select LAST_INSERT_ID();";
       var cmd2 = "INSERT INTO ItemDetails (itemID, description, price, title) VALUES (@ItemID, @Description, @Price, @Title);select LAST_INSERT_ID();";
 
       var uuid = Guid.NewGuid().ToString();
-      var result1 = MySqlHelper.ExecuteScalar(conn, cmd1, [new MySqlParameter("@ItemID", uuid), new MySqlParameter("@sellerID",item.SellerId),
+      var result1 = MySqlHelper.ExecuteScalar(state.DB, cmd1, [new MySqlParameter("@ItemID", uuid), new MySqlParameter("@sellerID",item.SellerId),
              new MySqlParameter("@sellerName",item.SellerName),new MySqlParameter("@startDate",item.StartDate), new MySqlParameter("@endDate",item.EndDate),
              new MySqlParameter("@status",item.Status)
       ]);
 
-      var result2 = MySqlHelper.ExecuteScalar(conn, cmd2, [new MySqlParameter("@ItemID", uuid),
+      var result2 = MySqlHelper.ExecuteScalar(state.DB, cmd2, [new MySqlParameter("@ItemID", uuid),
                 new MySqlParameter("@description",item.ItemDetails.Description),
              new MySqlParameter("@price",item.ItemDetails.Price),
                 new MySqlParameter("@title",item.ItemDetails.Title)
@@ -79,22 +79,50 @@ namespace Server
     {
       var cmd1 = "DELETE FROM ItemDetails WHERE itemID = @ItemID";
       var cmd2 = "DELETE FROM Items WHERE itemID = @ItemID";
-      MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd1, new MySqlParameter("@ItemID", ItemID));
-      MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd2, new MySqlParameter("@ItemID", ItemID));
+      MySqlHelper.ExecuteNonQuery(state.DB, cmd1, new MySqlParameter("@ItemID", ItemID));
+      MySqlHelper.ExecuteNonQuery(state.DB, cmd2, new MySqlParameter("@ItemID", ItemID));
 
     }
     public static void UpdateAuction(string itemID, Item item, State state)
     {
-      var conn = state.DB.ConnectionString;
+
       var cmd1 = "UPDATE Items SET startDate = @startDate, endDate = @endDate WHERE itemID = @itemID";
       var cmd2 = "UPDATE ItemDetails SET title = @title, description = @description, price = @price WHERE itemID = @itemID";
-      MySqlHelper.ExecuteNonQuery(conn, cmd1, [new MySqlParameter("@startDate", item.StartDate),
+      MySqlHelper.ExecuteNonQuery(state.DB, cmd1, [new MySqlParameter("@startDate", item.StartDate),
                                                     new MySqlParameter( "@endDate",item.EndDate),
                                                     new MySqlParameter("@itemID", itemID)]);
-      MySqlHelper.ExecuteNonQuery(conn, cmd2, [new MySqlParameter("@title", item.ItemDetails.Title),
+      MySqlHelper.ExecuteNonQuery(state.DB, cmd2, [new MySqlParameter("@title", item.ItemDetails.Title),
                                                     new MySqlParameter( "@description",item.ItemDetails.Description),
                                                      new MySqlParameter( "@price",item.ItemDetails.Price),
                                                     new MySqlParameter("@itemID", itemID)]);
+    }
+    public static List<Bid> GetBidHistoryForAuction(string auctionId, State state)
+    {
+      List<Bid> bidHistory = new List<Bid>();
+
+
+      string query = "SELECT * FROM Bids WHERE ItemId = @ItemId";
+      using var reader = MySqlHelper.ExecuteReader(state.DB, query, [new("@ItemId", auctionId)]);
+
+
+      while (reader.Read())
+      {
+        Bid bid = new Bid(
+            reader.GetInt32("Id"),
+            reader.GetString("BidderId"),
+            reader.GetString("ItemId"),
+            reader.GetDouble("BidPrice"),
+            reader.GetDateTime("BidTime")
+        );
+
+        bidHistory.Add(bid);
+      }
+
+
+
+      return bidHistory;
+
+
     }
 
   }

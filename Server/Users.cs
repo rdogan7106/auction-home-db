@@ -10,7 +10,7 @@ public static class Users
     public static List<User> All(State state)
     {
         var userList = new List<User>();
-        using var reader = MySqlHelper.ExecuteReader(state.DB.ConnectionString, "SELECT * FROM Users");
+        using var reader = MySqlHelper.ExecuteReader(state.DB, "SELECT * FROM Users");
         while (reader.Read())
         {
             var user = new User(
@@ -34,11 +34,11 @@ public static class Users
 
     public static IResult AddUser(User user, State state)
     {
-        var conn = state.DB.ConnectionString;
+
         var cmd = "INSERT INTO Users (userID, username, password, type, email, phone, personalNumber, firstname, lastname)" +
             "VALUES (@userID, @username, @password, @type, @email, @phone, @personalNumber, @firstname, @lastname);  select LAST_INSERT_ID();";
 
-        var result = MySqlHelper.ExecuteScalar(conn, cmd,
+        var result = MySqlHelper.ExecuteScalar(state.DB, cmd,
             [new MySqlParameter("@userID", Guid.NewGuid().ToString()), new MySqlParameter("@username",user.Username),
              new MySqlParameter("@password",user.Password),new MySqlParameter("@type",user.Type), new MySqlParameter("@email",user.Email),
              new MySqlParameter("@phone",user.Phone), new MySqlParameter("@personalNumber",user.PersonalNumber), new MySqlParameter("@firstname",user.Firstname),
@@ -64,21 +64,21 @@ public static class Users
         var cmd1 = "DELETE FROM ItemDetails WHERE itemID IN (SELECT itemID FROM Items WHERE sellerID = @userID)";
         var cmd2 = "DELETE FROM Items WHERE sellerID = @userID";
         var cmd3 = "DELETE FROM Users WHERE userID = @userID";
-        MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd1, new MySqlParameter("@userID", userID));
-        MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd2, new MySqlParameter("@userID", userID));
-        MySqlHelper.ExecuteNonQuery(state.DB.ConnectionString, cmd3, new MySqlParameter("@userID", userID));
+        MySqlHelper.ExecuteNonQuery(state.DB, cmd1, new MySqlParameter("@userID", userID));
+        MySqlHelper.ExecuteNonQuery(state.DB, cmd2, new MySqlParameter("@userID", userID));
+        MySqlHelper.ExecuteNonQuery(state.DB, cmd3, new MySqlParameter("@userID", userID));
 
 
     }
 
     public static void UpdateUser(string userID, User user, State state)
     {
-        var conn = state.DB.ConnectionString;
+
         var cmd = "UPDATE Users SET username = @username, password = @password, type = @type, email = @email, " +
                                        "phone = @phone, personalNumber = @personalNumber," +
                                         "firstname = @firstname, lastname = @lastname WHERE userID = @userID";
 
-        MySqlHelper.ExecuteNonQuery(conn, cmd, [new MySqlParameter("@username", user.Username),
+        MySqlHelper.ExecuteNonQuery(state.DB, cmd, [new MySqlParameter("@username", user.Username),
                                                     new MySqlParameter( "@password",user.Password),
                                                     new MySqlParameter( "@type",user.Type),
                                                     new MySqlParameter( "@email",user.Email),

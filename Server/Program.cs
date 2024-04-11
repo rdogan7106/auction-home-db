@@ -5,9 +5,13 @@ using Server;
 string connectionString = "server=localhost;uid=root;pwd=mypassword;database=AuctionDatabase;port=3306";
 
 var builder = WebApplication.CreateBuilder(args);
-State state = new(new(connectionString));
+State state = new(connectionString);
 builder.Services.AddSingleton(state);
 var app = builder.Build();
+app.MapGet("/auctions/{itemId}/bidHistory",
+
+ AuctionManager.GetBidHistoryForAuction
+);
 
 ;
 app.MapPost("/users", Users.AddUser);
@@ -30,4 +34,4 @@ app.MapGet("/", () =>
 });
 
 app.Run("http://localhost:3000");
-public record State(MySqlConnection DB);
+public record State(string DB);
