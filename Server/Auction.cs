@@ -33,11 +33,11 @@ namespace Server
 
     public record Bid
     {
-        public int Id { get; init; }
-        public string BidderID { get; init; }
-        public string ItemID { get; init; }
-        public double BidPrice { get; init; }
-        public DateTime BidTime { get; init; }
+        public int Id { get; set; }
+        public string BidderID { get; set; }
+        public string ItemID { get; set; }
+        public double BidPrice { get; set; }
+        public DateTime BidTime { get; set; }
 
         public Bid(int id, string bidderID, string itemID, double bidPrice, DateTime bidTime)
         {
@@ -51,11 +51,11 @@ namespace Server
 
     public record ItemDetails
     {
-        public int Id { get; init; }
-        public string Description { get; init; }
-        public float Price { get; init; }
-        public string ItemID { get; init; }
-        public string Title { get; init; }
+        public int Id { get; set; }
+        public string Description { get; set; }
+        public float Price { get; set; }
+        public string ItemID { get; set; }
+        public string Title { get; set; }
 
         public ItemDetails(int id, string description, float price, string itemID, string title)
         {
