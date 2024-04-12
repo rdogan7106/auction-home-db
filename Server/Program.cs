@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
 using Server;
-string connectionString = "server=localhost;uid=root;pwd=mypassword;database=AuctionDatabase;port=3306";
+string connectionString = "server=localhost;uid=root;pwd=Rd0671rd..;database=AuctionDatabase2;port=3306";
 
 var builder = WebApplication.CreateBuilder(args);
 State state = new(connectionString);
