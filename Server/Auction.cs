@@ -8,7 +8,8 @@ namespace Server
   public record Item(int Id, String ItemID, string SellerId, string SellerName,
         DateTime StartDate, DateTime EndDate, string Status, ItemDetails ItemDetails, List<Bid> Bids);
 
-  public record Bid(int Id, string BidderID, string ItemID, double BidPrice, DateTime BidTime);
+  public record Bid(int Id, string BidderID, int ItemID, double BidPrice, DateTime BidTime, string SellerId, string BidderName);
+
 
   public record ItemDetails(int Id, string Description, float Price, string ItemID, string Title);
 
@@ -96,34 +97,72 @@ namespace Server
                                                      new MySqlParameter( "@price",item.ItemDetails.Price),
                                                     new MySqlParameter("@itemID", itemID)]);
     }
-    public static List<Bid> GetBidHistoryForAuction(string auctionId, State state)
+    public static List<Bid> GetBidHistoryForAuction(string itemId, State state)
     {
+      Console.WriteLine($"Request received to fetch bid history for item ID: {itemId}");
       List<Bid> bidHistory = new List<Bid>();
 
-
-      string query = "SELECT * FROM Bids WHERE ItemId = @ItemId";
-      using var reader = MySqlHelper.ExecuteReader(state.DB, query, [new("@ItemId", auctionId)]);
-
-
-      while (reader.Read())
+      try
       {
-        Bid bid = new Bid(
-            reader.GetInt32("Id"),
-            reader.GetString("BidderId"),
-            reader.GetString("ItemId"),
-            reader.GetDouble("BidPrice"),
-            reader.GetDateTime("BidTime")
-        );
+        string query = @"
+            SELECT 
+                b.Id,
+                b.BidderId,
+                b.ItemId,
+                b.BidPrice,
+                b.BidTime,
+                i.sellerId,
+                i.id,
+                u.username AS BidderName
+            FROM 
+                Bids b
+            JOIN 
+                Items i ON b.ItemId = i.id
+            JOIN 
+                Users u ON b.BidderId = u.userID
+            WHERE 
+                b.ItemId = @ItemId
+        ";
 
-        bidHistory.Add(bid);
+        using (var connection = new MySqlConnection(state.DB))
+        {
+          connection.Open();
+
+          using (var command = new MySqlCommand(query, connection))
+          {
+            command.Parameters.AddWithValue("@ItemId", itemId);
+
+            using (var reader = command.ExecuteReader())
+            {
+              while (reader.Read())
+              {
+                Bid bid = new Bid(
+                    reader.GetInt32("Id"),
+                    reader.GetString("BidderId"),
+                    reader.GetInt32("ItemId"),
+                    reader.GetDouble("BidPrice"),
+                    reader.GetDateTime("BidTime"),
+                    reader.GetString("sellerId"),
+                    reader.GetString("BidderName")
+                );
+
+                bidHistory.Add(bid);
+              }
+            }
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Error fetching bid history: {ex.Message}");
+        // Handle exception if necessary
       }
 
-
-
       return bidHistory;
-
-
     }
+
+
+
 
   }
 }
