@@ -99,7 +99,7 @@ namespace Server
     }
     public static List<Bid> GetBidHistoryForAuction(string itemId, State state)
     {
-      Console.WriteLine($"Request received to fetch bid history for item ID: {itemId}");
+      
       List<Bid> bidHistory = new List<Bid>();
 
       try
@@ -155,11 +155,22 @@ namespace Server
       catch (Exception ex)
       {
         Console.WriteLine($"Error fetching bid history: {ex.Message}");
-        // Handle exception if necessary
+        
       }
 
       return bidHistory;
     }
+
+    public static void AddBid(Bid bid, State state)
+    {
+      var cmd = "INSERT INTO Bids (itemID, bidderID, bidTime, sellerID, bidPrice) VALUES (@ItemId, @BidderId, @BidTime, @SellerId, @BidPrice)";
+      MySqlHelper.ExecuteNonQuery(state.DB, cmd, new MySqlParameter("@ItemId", bid.ItemID),
+                                                      new MySqlParameter("@BidderId", bid.BidderID),
+                                                      new MySqlParameter("@BidTime", bid.BidTime),
+                                                      new MySqlParameter("@SellerId", bid.SellerId),
+                                                      new MySqlParameter("@BidPrice", bid.BidPrice));
+    }
+
 
 
 
