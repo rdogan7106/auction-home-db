@@ -12,7 +12,10 @@ namespace Server
 
   public record ItemDetails(int Id, string Description, float Price, string ItemID, string Title);
 
-  public static class AuctionManager
+  public record SoldItems(int Id, String ItemID, string SellerId, string SellerName,
+                DateTime StartDate, DateTime EndDate);
+
+    public static class AuctionManager
   {
     public static List<Item> GetAllItems(State state)
     {
@@ -125,5 +128,48 @@ namespace Server
 
     }
 
-  }
+        public static List<Item> GetSoldItems(State state)
+        {
+            List<Item> soldItems = new List<Item>();
+            string query = @"SELECT i.Id, i.ItemID, i.SellerId, i.SellerName, i.StartDate, i.EndDate, i.Status,
+             id.Description, id.Price, id.Title
+             FROM Items i
+             JOIN ItemDetails id ON i.ItemID = id.ItemID
+             WHERE i.Status = 'Sold'";
+
+            using var reader = MySqlHelper.ExecuteReader(state.DB, query);
+
+            while (reader.Read())
+            {
+                var itemDetails = new ItemDetails(
+                    reader.GetInt32("Id"),
+                    reader.GetString("Description"),
+                    reader.GetFloat("Price"),
+                    reader.GetString("ItemID"),
+                    reader.GetString("Title")
+                );
+
+                var item = new Item(
+                    reader.GetInt32("id"),
+                    reader.GetString("itemID"),
+                    reader.GetString("sellerId"),
+                    reader.GetString("sellerName"),
+                    reader.GetDateTime("startDate"),
+                    reader.GetDateTime("endDate"),
+                    reader.GetString("status"),
+                    itemDetails,
+                    new List<Bid>()
+       );
+                soldItems.Add(item);
+            }
+
+            return soldItems;
+        }
+
+
+
+
+
+
+    }
 }
