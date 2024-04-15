@@ -14,6 +14,7 @@ app.MapGet("/auctions/{itemId}/bidHistory",
 );
 
 
+
 app.MapPost("/users", Users.AddUser);
 app.MapGet("/users", Users.All);
 app.MapDelete("/users/{userID}", Users.DeleteUser);
@@ -24,6 +25,8 @@ app.MapGet("/auctions", AuctionManager.GetAllItems);
 app.MapPost("/auctions", AuctionManager.AddItem);
 app.MapDelete("/auctions/{ItemID}", AuctionManager.DeleteItem);
 app.MapPut("/auctions/{ItemID}", AuctionManager.UpdateAuction);
+app.MapGet("/auctions/{status}", AuctionManager.GetSoldItems);
+
 
 
 
