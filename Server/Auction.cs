@@ -99,7 +99,6 @@ namespace Server
                                                     new MySqlParameter( "@description",item.ItemDetails.Description),
                                                      new MySqlParameter( "@price",item.ItemDetails.Price),
                                                     new MySqlParameter("@itemID", itemID)]);
-<<<<<<< HEAD
     }
     public static List<Bid> GetBidHistoryForAuction(string itemId, State state)
     {
@@ -175,84 +174,47 @@ namespace Server
                                                       new MySqlParameter("@BidPrice", bid.BidPrice));
     }
 
+        
+    public static List<Item> GetSoldItems(State state)
+    {
+        List<Item> soldItems = new List<Item>();
+        string query = @"SELECT i.Id, i.ItemID, i.SellerId, i.SellerName, i.StartDate, i.EndDate, i.Status,
+         id.Description, id.Price, id.Title
+         FROM Items i
+         JOIN ItemDetails id ON i.ItemID = id.ItemID
+         WHERE i.Status = 'Sold'";
 
+        using var reader = MySqlHelper.ExecuteReader(state.DB, query);
 
-
-
-  }
-}
-=======
-        }
-        public static List<Bid> GetBidHistoryForAuction(string auctionId, State state)
+        while (reader.Read())
         {
-            List<Bid> bidHistory = new List<Bid>();
+            var itemDetails = new ItemDetails(
+                reader.GetInt32("Id"),
+                reader.GetString("Description"),
+                reader.GetFloat("Price"),
+                reader.GetString("ItemID"),
+                reader.GetString("Title")
+            );
 
-
-            string query = "SELECT * FROM Bids WHERE ItemId = @ItemId";
-            using var reader = MySqlHelper.ExecuteReader(state.DB, query, [new("@ItemId", auctionId)]);
-
-
-            while (reader.Read())
-            {
-                Bid bid = new Bid(
-                    reader.GetInt32("Id"),
-                    reader.GetString("BidderId"),
-                    reader.GetString("ItemId"),
-                    reader.GetDouble("BidPrice"),
-                    reader.GetDateTime("BidTime")
+            var item = new Item(
+                reader.GetInt32("id"),
+                reader.GetString("itemID"),
+                reader.GetString("sellerId"),
+                reader.GetString("sellerName"),
+                reader.GetDateTime("startDate"),
+                reader.GetDateTime("endDate"),
+                reader.GetString("status"),
+                itemDetails,
+                new List<Bid>()
                 );
-
-                bidHistory.Add(bid);
-            }
-
-
-
-            return bidHistory;
-
-
+            soldItems.Add(item);
         }
 
-        public static List<Item> GetSoldItems(State state)
-        {
-            List<Item> soldItems = new List<Item>();
-            string query = @"SELECT i.Id, i.ItemID, i.SellerId, i.SellerName, i.StartDate, i.EndDate, i.Status,
-             id.Description, id.Price, id.Title
-             FROM Items i
-             JOIN ItemDetails id ON i.ItemID = id.ItemID
-             WHERE i.Status = 'Sold'";
-
-            using var reader = MySqlHelper.ExecuteReader(state.DB, query);
-
-            while (reader.Read())
-            {
-                var itemDetails = new ItemDetails(
-                    reader.GetInt32("Id"),
-                    reader.GetString("Description"),
-                    reader.GetFloat("Price"),
-                    reader.GetString("ItemID"),
-                    reader.GetString("Title")
-                );
-
-                var item = new Item(
-                    reader.GetInt32("id"),
-                    reader.GetString("itemID"),
-                    reader.GetString("sellerId"),
-                    reader.GetString("sellerName"),
-                    reader.GetDateTime("startDate"),
-                    reader.GetDateTime("endDate"),
-                    reader.GetString("status"),
-                    itemDetails,
-                    new List<Bid>()
-                    );
-                soldItems.Add(item);
-            }
-
-            return soldItems;
-        }
+        return soldItems;
+    }
 
    
 
 
     }
 }
->>>>>>> SoldItems
