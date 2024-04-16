@@ -1,9 +1,13 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
+using MySql.Data.MySqlClient;
 
 namespace Server;
 
 public record User(int Id, string UserID, string Username, string Password, string Type,
                     string Email, string Phone, int PersonalNumber, string Firstname, string Lastname);
+
+public record LoginRequest(string LoginUserName, string LoginPassword);
 
 public static class Users
 {
@@ -88,4 +92,26 @@ public static class Users
                                                     new MySqlParameter( "@lastName",user.Lastname),
                                                     new MySqlParameter( "@userID",userID),]);
     }
+<<<<<<< HEAD
 }
+=======
+
+
+
+    public static bool Login([FromBody] LoginRequest request, State state)
+    {
+        var userLoggedIn = false;
+        var cmd = "SELECT * From Users WHERE username = @username AND password = @password";
+        var reader = MySqlHelper.ExecuteReader(state.DB, cmd,
+             [new MySqlParameter("@username", request.LoginUserName),
+            new MySqlParameter("@password", request.LoginPassword)]);
+
+        if (reader.Read() != null)
+        {
+            userLoggedIn = true;
+        }
+        return userLoggedIn;
+    }
+}
+
+>>>>>>> SoldItems
