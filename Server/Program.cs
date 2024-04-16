@@ -8,10 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 State state = new(connectionString);
 builder.Services.AddSingleton(state);
 var app = builder.Build();
+
 app.MapGet("/auctions/{itemId}/bidHistory",
 
  AuctionManager.GetBidHistoryForAuction
 );
+app.MapPost("/bids", AuctionManager.AddBid);
+
+
 
 ;
 app.MapPost("/users", Users.AddUser);
