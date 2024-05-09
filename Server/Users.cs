@@ -32,7 +32,32 @@ public static class Users
         return userList;
     }
 
+    public static IResult GetUser(string userID,State state)
+    {
+        using var reader = MySqlHelper.ExecuteReader(state.DB, "SELECT * FROM Users where userID = @userID", new MySqlParameter("@userID", userID));
 
+        if (reader.Read())
+        {
+            var user = new User(
+            reader.GetInt32("id"),
+            reader.GetString("userID"),
+            reader.GetString("username"),
+            reader.GetString("password"),
+            reader.GetString("Type"),
+            reader.GetString("email"),
+            reader.GetString("phone"),
+            reader.GetInt32("personalNumber"),
+            reader.GetString("firstname"),
+            reader.GetString("lastname")
+        );
+            return Results.Ok(user);
+        }
+        else
+        {
+            return Results.NotFound("User not found.");
+        }
+
+    } 
     public static IResult AddUser(User user, State state)
     {
 
