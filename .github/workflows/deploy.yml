@@ -1,0 +1,35 @@
+name: Test Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+# The jobs to run in this workflow are defined here.
+jobs:
+
+
+  # The deploy job will run on the ubuntu-latest runner and will have the following steps.
+  deploy:
+    runs-on:
+      ubuntu-latest
+  # The steps to deploy the application to the server using SSH action.
+    steps:
+      - name: Doing a deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+
+          script: |
+            echo "Deploying to the server"
+            source /root/.nvm/nvm.sh
+            nvm use v20.12.2
+            echo "Checking node and npm versions"
+            node -v
+            npm -v
+            cd /var/www/auction-home-db
+            git pull
+            pm2 delete team2dotnet
+            pm2 start --name team2dotnet "dotnet run"
