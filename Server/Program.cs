@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using MySql.Data.MySqlClient;
 using Server;
-string connectionString = "server=localhost;uid=root;pwd=curling29;database=AuctionDatabase2;port=3306";
+string connectionString = "server=localhost;uid=root;pwd=your-password;database=AuctionDatabase2;port=3306";
 
 
 var builder = WebApplication.CreateBuilder(args);
