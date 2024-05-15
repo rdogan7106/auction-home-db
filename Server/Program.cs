@@ -16,7 +16,7 @@ builder.Services.AddSingleton(state);
 var app = builder.Build();
 
 // För att köra lokalt igen utan distmap ta bort rad 19 -> 33, samt 68 -> 82, och lägg till "http://localhost:3000" i app.run på rad 84
-var distPath = Path.Combine(app.Environment.ContentRootPath, "../../AuctionHomeGroup2/dist");
+var distPath = Path.Combine(app.Environment.ContentRootPath, "../../AuctionsHomeGroup2/dist");
 var fileProvider = new PhysicalFileProvider(distPath);
 
 app.UseDefaultFiles(new DefaultFilesOptions
@@ -70,7 +70,7 @@ app.MapFallback(async context =>
 
     string path = context.Request.Path.Value;
 
-    if (!path.StartsWith("/api/"))
+    if (!path.StartsWith("/api"))
     {
         context.Response.ContentType = "text/html";
         await context.Response.SendFileAsync(Path.Combine(distPath, "index.html"));
