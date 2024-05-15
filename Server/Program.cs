@@ -1,35 +1,57 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using MySql.Data.MySqlClient;
 using Server;
-string connectionString = "server=localhost;uid=root;pwd=mypassword;database=AuctionDatabase;port=3306";
+string connectionString = "server=localhost;uid=root;pwd=curling29;database=AuctionDatabase2;port=3306";
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(3000);
+});
 State state = new(connectionString);
 builder.Services.AddSingleton(state);
 var app = builder.Build();
+var distPath = Path.Combine(app.Environment.ContentRootPath, "dist");
+var fileProvider = new PhysicalFileProvider(distPath);
 
-app.MapGet("/auctions/{itemId}/bidHistory",
+app.UseDefaultFiles(new DefaultFilesOptions
+{
+    FileProvider = fileProvider,
+    DefaultFileNames = new List<string> { "index.html" }
+});
+
+// Här deklarerar vi att vår app ska hantera statiska filer (vår distmapp)
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = fileProvider,
+    RequestPath = ""
+});
+
+app.UseRouting();
+
+app.MapGet("/api/auctions/{itemId}/bidHistory",
 
  AuctionManager.GetBidHistoryForAuction
 );
-app.MapPost("/bids", AuctionManager.AddBid);
+app.MapPost("/api/bids", AuctionManager.AddBid);
 
 
 
 
 
-app.MapPost("/users", Users.AddUser);
-app.MapGet("/users", Users.All);
-app.MapDelete("/users/{userID}", Users.DeleteUser);
-app.MapPut("/users/{userID}", Users.UpdateUser);
+app.MapPost("/api/users", Users.AddUser);
+app.MapGet("/api/users", Users.All);
+app.MapDelete("/api/users/{userID}", Users.DeleteUser);
+app.MapPut("/api/users/{userID}", Users.UpdateUser);
 
-app.MapGet("/auctions", AuctionManager.GetAllItems);
-app.MapPost("/auctions", AuctionManager.AddItem);
-app.MapDelete("/auctions/{ItemID}", AuctionManager.DeleteItem);
-app.MapPut("/auctions/{ItemID}", AuctionManager.UpdateAuction);
-app.MapGet("/auctions/{status}", AuctionManager.GetSoldItems);
+app.MapGet("/api/auctions", AuctionManager.GetAllItems);
+app.MapPost("/api/auctions", AuctionManager.AddItem);
+app.MapDelete("/api/auctions/{ItemID}", AuctionManager.DeleteItem);
+app.MapPut("/api/auctions/{ItemID}", AuctionManager.UpdateAuction);
+app.MapGet("/api/auctions/{status}", AuctionManager.GetSoldItems);
 
 
 
@@ -41,5 +63,21 @@ app.MapGet("/", () =>
   return "Hello World!";
 });
 
-app.Run("http://localhost:3000");
+app.MapFallback(async context =>
+{
+
+    string path = context.Request.Path.Value;
+
+    if (!path.StartsWith("/api/"))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(Path.Combine(distPath, "index.html"));
+
+    }
+
+   
+
+});
+
+app.Run();
 public record State(string DB);
