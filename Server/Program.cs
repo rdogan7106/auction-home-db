@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using MySql.Data.MySqlClient;
 using Server;
-string connectionString = "server=localhost;uid=root;pwd=your-password;database=AuctionDatabase2;port=3306";
+string connectionString = "server=127.0.0.1;uid=root;pwd=your-password;database=AuctionDatabase2;port=3306";
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +16,7 @@ builder.Services.AddSingleton(state);
 var app = builder.Build();
 
 // För att köra lokalt igen utan distmap ta bort rad 19 -> 33, samt 68 -> 82, och lägg till "http://localhost:3000" i app.run på rad 84
-var distPath = Path.Combine(app.Environment.ContentRootPath, "dist");
+var distPath = Path.Combine(app.Environment.ContentRootPath, "../../AuctionHomeGroup2/dist");
 var fileProvider = new PhysicalFileProvider(distPath);
 
 app.UseDefaultFiles(new DefaultFilesOptions
