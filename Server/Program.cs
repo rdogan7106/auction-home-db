@@ -14,6 +14,8 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 State state = new(connectionString);
 builder.Services.AddSingleton(state);
 var app = builder.Build();
+
+// För att köra lokalt igen utan distmap ta bort rad 19 -> 33, samt 68 -> 82, och lägg till "http://localhost:3000" i app.run på rad 84
 var distPath = Path.Combine(app.Environment.ContentRootPath, "dist");
 var fileProvider = new PhysicalFileProvider(distPath);
 
