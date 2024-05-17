@@ -5,16 +5,16 @@ using System.Collections.Generic;
 
 namespace Server
 {
-  public record Item(int Id, String ItemID, string SellerId, string SellerName,
-        DateTime StartDate, DateTime EndDate, string Status, ItemDetails ItemDetails, List<Bid> Bids);
+    public record Item(int Id, String ItemID, string SellerId, string SellerName,
+          DateTime StartDate, DateTime EndDate, string Status, ItemDetails ItemDetails, List<Bid> Bids);
 
-  public record Bid(int Id, string BidderID, int ItemID, double BidPrice, DateTime BidTime, string SellerId, string BidderName);
+    public record Bid(int Id, string BidderID, int ItemID, double BidPrice, DateTime BidTime, string SellerId, string BidderName);
 
 
-  public record ItemDetails(int Id, string Description, float Price, string ItemID, string Title);
+    public record ItemDetails(int Id, string Description, float Price, string ItemID, string Title);
 
-  public record SoldItems(int Id, String ItemID, string SellerId, string SellerName,
-                DateTime StartDate, DateTime EndDate);
+    public record SoldItems(int Id, String ItemID, string SellerId, string SellerName,
+                  DateTime StartDate, DateTime EndDate);
 
     public static class AuctionManager
     {
@@ -99,15 +99,15 @@ namespace Server
                                                     new MySqlParameter( "@description",item.ItemDetails.Description),
                                                      new MySqlParameter( "@price",item.ItemDetails.Price),
                                                     new MySqlParameter("@itemID", itemID)]);
-    }
-    public static List<Bid> GetBidHistoryForAuction(string itemId, State state)
-    {
-      
-      List<Bid> bidHistory = new List<Bid>();
+        }
+        public static List<Bid> GetBidHistoryForAuction(string itemId, State state)
+        {
 
-      try
-      {
-        string query = @"
+            List<Bid> bidHistory = new List<Bid>();
+
+            try
+            {
+                string query = @"
             SELECT 
                 b.Id,
                 b.BidderId,
@@ -127,93 +127,93 @@ namespace Server
                 b.ItemId = @ItemId
         ";
 
-        using (var connection = new MySqlConnection(state.DB))
-        {
-          connection.Open();
+                using (var connection = new MySqlConnection(state.DB))
+                {
+                    connection.Open();
 
-          using (var command = new MySqlCommand(query, connection))
-          {
-            command.Parameters.AddWithValue("@ItemId", itemId);
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ItemId", itemId);
 
-            using (var reader = command.ExecuteReader())
-            {
-              while (reader.Read())
-              {
-                Bid bid = new Bid(
-                    reader.GetInt32("Id"),
-                    reader.GetString("BidderId"),
-                    reader.GetInt32("ItemId"),
-                    reader.GetDouble("BidPrice"),
-                    reader.GetDateTime("BidTime"),
-                    reader.GetString("sellerId"),
-                    reader.GetString("BidderName")
-                );
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Bid bid = new Bid(
+                                    reader.GetInt32("Id"),
+                                    reader.GetString("BidderId"),
+                                    reader.GetInt32("ItemId"),
+                                    reader.GetDouble("BidPrice"),
+                                    reader.GetDateTime("BidTime"),
+                                    reader.GetString("sellerId"),
+                                    reader.GetString("BidderName")
+                                );
 
-                bidHistory.Add(bid);
-              }
+                                bidHistory.Add(bid);
+                            }
+                        }
+                    }
+                }
             }
-          }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching bid history: {ex.Message}");
+
+            }
+
+            return bidHistory;
         }
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine($"Error fetching bid history: {ex.Message}");
-        
-      }
 
-      return bidHistory;
-    }
+        public static void AddBid(Bid bid, State state)
+        {
+            var cmd = "INSERT INTO Bids (itemID, bidderID, bidTime, sellerID, bidPrice) VALUES (@ItemId, @BidderId, @BidTime, @SellerId, @BidPrice)";
+            MySqlHelper.ExecuteNonQuery(state.DB, cmd, new MySqlParameter("@ItemId", bid.ItemID),
+                                                            new MySqlParameter("@BidderId", bid.BidderID),
+                                                            new MySqlParameter("@BidTime", bid.BidTime),
+                                                            new MySqlParameter("@SellerId", bid.SellerId),
+                                                            new MySqlParameter("@BidPrice", bid.BidPrice));
+        }
 
-    public static void AddBid(Bid bid, State state)
-    {
-      var cmd = "INSERT INTO Bids (itemID, bidderID, bidTime, sellerID, bidPrice) VALUES (@ItemId, @BidderId, @BidTime, @SellerId, @BidPrice)";
-      MySqlHelper.ExecuteNonQuery(state.DB, cmd, new MySqlParameter("@ItemId", bid.ItemID),
-                                                      new MySqlParameter("@BidderId", bid.BidderID),
-                                                      new MySqlParameter("@BidTime", bid.BidTime),
-                                                      new MySqlParameter("@SellerId", bid.SellerId),
-                                                      new MySqlParameter("@BidPrice", bid.BidPrice));
-    }
 
-        
-    public static List<Item> GetSoldItems(State state)
-    {
-        List<Item> soldItems = new List<Item>();
-        string query = @"SELECT i.Id, i.ItemID, i.SellerId, i.SellerName, i.StartDate, i.EndDate, i.Status,
+        public static List<Item> GetSoldItems(State state)
+        {
+            List<Item> soldItems = new List<Item>();
+            string query = @"SELECT i.Id, i.ItemID, i.SellerId, i.SellerName, i.StartDate, i.EndDate, i.Status,
          id.Description, id.Price, id.Title
          FROM Items i
          JOIN ItemDetails id ON i.ItemID = id.ItemID
          WHERE i.Status = 'Sold'";
 
-        using var reader = MySqlHelper.ExecuteReader(state.DB, query);
+            using var reader = MySqlHelper.ExecuteReader(state.DB, query);
 
-        while (reader.Read())
-        {
-            var itemDetails = new ItemDetails(
-                reader.GetInt32("Id"),
-                reader.GetString("Description"),
-                reader.GetFloat("Price"),
-                reader.GetString("ItemID"),
-                reader.GetString("Title")
-            );
-
-            var item = new Item(
-                reader.GetInt32("id"),
-                reader.GetString("itemID"),
-                reader.GetString("sellerId"),
-                reader.GetString("sellerName"),
-                reader.GetDateTime("startDate"),
-                reader.GetDateTime("endDate"),
-                reader.GetString("status"),
-                itemDetails,
-                new List<Bid>()
+            while (reader.Read())
+            {
+                var itemDetails = new ItemDetails(
+                    reader.GetInt32("Id"),
+                    reader.GetString("Description"),
+                    reader.GetFloat("Price"),
+                    reader.GetString("ItemID"),
+                    reader.GetString("Title")
                 );
-            soldItems.Add(item);
+
+                var item = new Item(
+                    reader.GetInt32("id"),
+                    reader.GetString("itemID"),
+                    reader.GetString("sellerId"),
+                    reader.GetString("sellerName"),
+                    reader.GetDateTime("startDate"),
+                    reader.GetDateTime("endDate"),
+                    reader.GetString("status"),
+                    itemDetails,
+                    new List<Bid>()
+                    );
+                soldItems.Add(item);
+            }
+
+            return soldItems;
         }
 
-        return soldItems;
-    }
 
-   
 
 
     }
