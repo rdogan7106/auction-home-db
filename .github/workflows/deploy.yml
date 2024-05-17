@@ -29,7 +29,7 @@ jobs:
             echo "Checking node and npm versions"
             node -v
             npm -v
-            cd /var/www/auction-home-db
+            cd /var/www/auction-home-db/Server
             git pull
             pm2 delete team2dotnet
             pm2 start --name team2dotnet "dotnet run"
